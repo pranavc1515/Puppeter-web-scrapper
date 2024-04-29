@@ -1,0 +1,46 @@
+{
+  "title": "Jungle Resorts, Farm Stays & Outdoor Adventures near Bangalore | Avathi",
+  "metaDescription": "",
+  "images": [
+    {
+      "src": "https://avathioutdoors.gumlet.io/live/icons/close.svg",
+      "alt": ""
+    },
+    {
+      "src": "https://avathioutdoors.gumlet.io/live/icons/logo_avathi.png",
+      "alt": "logo_avathi"
+    },
+    {
+      "src": "https://avathioutdoors.gumlet.io/live/icons/close-white.svg",
+      "alt": "Skip"
+    },
+    {
+      "src": "https://avathioutdoors.gumlet.io/live/icons/whatsapp.png",
+      "alt": "img"
+    },
+    {
+      "src": "https://avathioutdoors.gumlet.io/live/icons/whatsapp.png",
+      "alt": "img"
+    }
+  ],
+  "links": [
+    {
+      "href": "tel:8971202915",
+      "text": "+918971202915"
+    },
+    {
+      "href": "mailto:support@avathi.com",
+      "text": "support@avathi.com"
+    },
+    {
+      "href": "https://api.whatsapp.com/send?phone=918971202915&text=Hi%20there!%20Please%20share%20a%20few%20details%20to%20serve%20you%20better:%3E%3E%3E%20Full%20Name,%20Date%20of%20Travel,%20Location,%20No%20of%20Guests,%20Budget,%20Preferred%20experience:%20Unique%20Stay%20(e.g%20Farmstay/Camping/Jungle%20lodges%20etc)%20OR%20Activity%20(e.g.%20Scuba,%20Day%20outing%20etc)",
+      "text": ""
+    },
+    {
+      "href": "https://api.whatsapp.com/send?phone=918971202915&text=Hi%20there!%20Please%20share%20a%20few%20details%20to%20serve%20you%20better:%3E%3E%3E%20Full%20Name,%20Date%20of%20Travel,%20Location,%20No%20of%20Guests,%20Budget,%20Preferred%20experience:%20Unique%20Stay%20(e.g%20Farmstay/Camping/Jungle%20lodges%20etc)%20OR%20Activity%20(e.g.%20Scuba,%20Day%20outing%20etc)",
+      "text": ""
+    }
+  ],
+  "imageCount": 5,
+  "linkCount": 4
+}
