@@ -9,6 +9,9 @@ async function run() {
     // Navigate to page
     await page.goto('https://www.avathi.com/');
 
+    // Wait for the network to be idle for 2 seconds
+    await page.waitForTimeout(2000);
+
     // Get full HTML content of the page
     const htmlContent = await page.content();
 
@@ -23,7 +26,8 @@ async function run() {
 
     console.log("HTML content has been scraped and saved to html/page.html");
 
-    await browser.close();
+    // Keep the browser window open
+    // await browser.close();
 }
 
 run();
