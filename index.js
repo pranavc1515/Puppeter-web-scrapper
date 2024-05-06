@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core'); // Use puppeteer-core instead of puppeteer
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
@@ -15,7 +15,9 @@ const sitemapUrls = [
 ];
 
 async function saveCompleteWebPage(url, filePath) {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    executablePath: '/snap/bin/chromium', // Adjust the path accordingly
+  });
   const page = await browser.newPage();
   await page.setDefaultNavigationTimeout(600000000);
   await page.goto(url, { waitUntil: 'networkidle0' });
@@ -32,7 +34,9 @@ async function saveCompleteWebPage(url, filePath) {
 
 async function scrapeAllPages() {
   for (const sitemapUrl of sitemapUrls) {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      executablePath: '/snap/bin/chromium', // Adjust the path accordingly
+    });
     const page = await browser.newPage();
     await page.goto(sitemapUrl, { waitUntil: 'networkidle0' });
     const sitemapContent = await page.content();
