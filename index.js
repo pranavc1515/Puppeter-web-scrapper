@@ -17,7 +17,7 @@ const sitemapUrls = [
 
 async function saveCompleteWebPage(url, filePath) {
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox'], // Disabling sandbox
+    executablePath: '/usr/bin/chromium-browser', // Specify the path to Chromium executable
   });
   const page = await browser.newPage();
   await page.setDefaultNavigationTimeout(600000000);
@@ -36,7 +36,7 @@ async function saveCompleteWebPage(url, filePath) {
 async function scrapeAllPages() {
   for (const sitemapUrl of sitemapUrls) {
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox'], // Disabling sandbox
+      executablePath: '/usr/bin/chromium-browser', // Specify the path to Chromium executable
     });
     const page = await browser.newPage();
     await page.goto(sitemapUrl, { waitUntil: 'networkidle0' });
