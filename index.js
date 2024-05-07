@@ -5,12 +5,12 @@ const path = require('path');
 const { URL } = require('url');
 
 const sitemapUrls = [
-  "https://www.avathi.com/experiences/sitemap.xml",
-  "https://www.avathi.com/static_pages/sitemap.xml",
-  "https://www.avathi.com/activities/sitemap.xml",
-  "https://www.avathi.com/stories/sitemap.xml",
-  "https://www.avathi.com/places/sitemap.xml",
-  "https://www.avathi.com/guide/sitemap.xml",
+  // "https://www.avathi.com/experiences/sitemap.xml",
+  // "https://www.avathi.com/static_pages/sitemap.xml",
+  // "https://www.avathi.com/activities/sitemap.xml",
+  // "https://www.avathi.com/stories/sitemap.xml",
+  // "https://www.avathi.com/places/sitemap.xml",
+  // "https://www.avathi.com/guide/sitemap.xml",
   "https://www.avathi.com/place/sitemap.xml",
   "https://www.avathi.com/activity/sitemap.xml"
 ];
