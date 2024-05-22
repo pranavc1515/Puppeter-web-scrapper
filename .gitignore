@@ -1,1 +1,3 @@
 **/node_modules
+**/scrapped-data
+**/.env
