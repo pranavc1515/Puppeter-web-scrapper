@@ -41,7 +41,7 @@ async function saveToS3(bucketName, key, content) {
   }
 }
 
-async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) {
+async function saveCompleteWebPage(url, browser, baseDir = 'scrapped-data', retries = 3) {
   const urlPath = new URL(url).pathname;
   const filePath = path.join(__dirname, baseDir, urlPath, 'index.html');
   if (fs.existsSync(filePath)) {
@@ -50,13 +50,7 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) 
   }
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
-  const browser = await puppeteer.launch({
-    headless: true, 
-    timeout: 0 
-  });
-
-  let attempt = 0;
-  while (attempt <= retries) {
+  for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const page = await browser.newPage();
       await page.setRequestInterception(true);
@@ -68,44 +62,44 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) 
         }
       });
       await page.goto(url, { waitUntil: 'networkidle0', timeout: 0 });
-      const selectors = ['.prerender-readmore.read', '.prerender-readmore.view', '.prerender-readmore.see-all'];
-      for (const selector of selectors) {
-        if (await page.$(selector) !== null) {
-          await page.waitForSelector(selector, { visible: true });
-          await page.evaluate((sel) => {
-            document.querySelectorAll(sel).forEach(button => button.click());
-          }, selector);
-          await page.waitForTimeout(5000);
-        }
+      const readMoreButton = '.prerender-readmore';
+      const readMoreExists = await page.$(readMoreButton);
+      if (readMoreExists) {
+        await page.click(readMoreButton);
+        await page.waitForTimeout(5000);
       }
       const htmlContent = await page.content();
       fs.writeFileSync(filePath, htmlContent);
       console.log(`The file was saved as ${filePath}!`);
 
       // Upload to S3
-      const s3Key = path.join(baseDir, urlPath, 'index.html').replace(/\\/g, '/'); 
+      const s3Key = path.relative(__dirname, filePath).replace(/\\/g, '/'); // Convert Windows backslashes to forward slashes for S3
       await saveToS3(process.env.S3_BUCKET_NAME, s3Key, htmlContent);
 
-      break; // Break the loop if successful
+      await page.close();
+      return; 
     } catch (error) {
       console.error(`Error occurred while scraping ${url} on attempt ${attempt + 1}:`, error);
-      if (attempt === retries) {
-        console.error(`Failed to scrape ${url} after ${retries + 1} attempts.`);
+      if (attempt === retries - 1) {
+        console.error(`Failed to scrape ${url} after ${retries} attempts.`);
       }
     }
-    attempt++;
   }
-
-  await browser.close();
 }
 
-async function scrapeFromSitemap(sitemapUrl) {
+async function scrapeFromSitemap(sitemapUrl, concurrency = 5) {
   const urls = await fetchSitemapUrls(sitemapUrl);
-  for (const url of urls) {
-    await saveCompleteWebPage(url);
+  const browser = await puppeteer.launch({ headless: true });
+  try {
+    for (let i = 0; i < urls.length; i += concurrency) {
+      const chunk = urls.slice(i, i + concurrency);
+      await Promise.all(chunk.map(url => saveCompleteWebPage(url, browser)));
+    }
+  } finally {
+    await browser.close();
   }
 }
 
 module.exports = async () => {
-  await scrapeFromSitemap('https://www.avathi.com/experiences/sitemap.xml');
+  await scrapeFromSitemap('https://www.avathi.com/activity/sitemap.xml');
 };

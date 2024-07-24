@@ -3,6 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const xml2js = require('xml2js');
+const AWS = require('aws-sdk');
+require('dotenv').config();
+
+// Configure AWS S3
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
 
 async function fetchSitemapUrls(sitemapUrl) {
   try {
@@ -13,6 +22,22 @@ async function fetchSitemapUrls(sitemapUrl) {
   } catch (error) {
     console.error('Error fetching or parsing sitemap:', error);
     return [];
+  }
+}
+
+async function saveToS3(bucketName, key, content) {
+  const params = {
+    Bucket: bucketName,
+    Key: key,
+    Body: content,
+    ContentType: 'text/html'
+  };
+
+  try {
+    await s3.upload(params).promise();
+    console.log(`Successfully uploaded ${key} to ${bucketName}`);
+  } catch (error) {
+    console.error(`Failed to upload ${key} to ${bucketName}:`, error);
   }
 }
 
@@ -51,6 +76,11 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) 
       const htmlContent = await page.content();
       fs.writeFileSync(filePath, htmlContent);
       console.log(`The file was saved as ${filePath}!`);
+
+      // Upload to S3
+      const s3Key = path.join(baseDir, urlPath, 'index.html').replace(/\\/g, '/'); // Convert Windows backslashes to forward slashes for S3
+      await saveToS3(process.env.S3_BUCKET_NAME, s3Key, htmlContent);
+
       break; // Success, break out of loop
     } catch (error) {
       console.error(`Error occurred while scraping ${url} on attempt ${attempt + 1}:`, error);

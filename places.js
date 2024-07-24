@@ -3,6 +3,14 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const xml2js = require('xml2js');
+const AWS = require('aws-sdk');
+require('dotenv').config();
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
 
 async function fetchSitemapUrls(sitemapUrl) {
   try {
@@ -13,6 +21,22 @@ async function fetchSitemapUrls(sitemapUrl) {
   } catch (error) {
     console.error('Error fetching or parsing sitemap:', error);
     return [];
+  }
+}
+
+async function saveToS3(bucketName, key, content) {
+  const params = {
+    Bucket: bucketName,
+    Key: key,
+    Body: content,
+    ContentType: 'text/html'
+  };
+
+  try {
+    await s3.upload(params).promise();
+    console.log(`Successfully uploaded ${key} to ${bucketName}`);
+  } catch (error) {
+    console.error(`Failed to upload ${key} to ${bucketName}:`, error);
   }
 }
 
@@ -46,18 +70,21 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data') {
 
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 0 });
 
-    // Click all 'Read More' links dynamically
     const readMoreSelectors = '[style*="text-decoration: underline rgb(255, 208, 66);"]'; // Targets all underlined 'Read More' links
 
     await page.evaluate(selector => {
       document.querySelectorAll(selector).forEach(button => button.click());
     }, readMoreSelectors);
 
-    await page.waitForTimeout(5000); // Wait for the expanded content to load
+    await page.waitForTimeout(5000); 
 
     const htmlContent = await page.content();
     fs.writeFileSync(filePath, htmlContent);
     console.log(`The file was saved as ${filePath}!`);
+
+    const s3Key = path.relative(__dirname, filePath).replace(/\\/g, '/'); 
+    await saveToS3(process.env.S3_BUCKET_NAME, s3Key, htmlContent);
+
   } catch (error) {
     console.error('Error occurred while scraping:', error);
   } finally {

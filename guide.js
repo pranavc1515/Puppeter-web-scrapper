@@ -3,6 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const xml2js = require('xml2js');
+const AWS = require('aws-sdk');
+require('dotenv').config();
+
+// Configure AWS S3
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
 
 async function fetchSitemapUrls(sitemapUrl) {
   try {
@@ -13,6 +22,22 @@ async function fetchSitemapUrls(sitemapUrl) {
   } catch (error) {
     console.error('Error fetching or parsing sitemap:', error);
     return [];
+  }
+}
+
+async function saveToS3(bucketName, key, content) {
+  const params = {
+    Bucket: bucketName,
+    Key: key,
+    Body: content,
+    ContentType: 'text/html'
+  };
+
+  try {
+    await s3.upload(params).promise();
+    console.log(`Successfully uploaded ${key} to ${bucketName}`);
+  } catch (error) {
+    console.error(`Failed to upload ${key} to ${bucketName}:`, error);
   }
 }
 
@@ -43,15 +68,20 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) 
         }
       });
       await page.goto(url, { waitUntil: 'networkidle0', timeout: 0 });
-      await page.waitForSelector('.read-more.prerender-readmore', { visible: true, timeout: 10000 });
+      await page.waitForSelector('.overview .read-more', { visible: true, timeout: 10000 });
       await page.evaluate(() => {
-        document.querySelectorAll('.read-more.prerender-readmore').forEach(button => button.click());
+        document.querySelector('.overview .read-more').click();
       });
       await page.waitForTimeout(5000);
       const htmlContent = await page.content();
       fs.writeFileSync(filePath, htmlContent);
       console.log(`The file was saved as ${filePath}!`);
-      break; // Break the loop if page was saved successfully
+
+      // Upload to S3
+      const s3Key = path.relative(__dirname, filePath).replace(/\\/g, '/'); // Convert Windows backslashes to forward slashes for S3
+      await saveToS3(process.env.S3_BUCKET_NAME, s3Key, htmlContent);
+
+      break; 
     } catch (error) {
       console.error(`Error occurred while scraping ${url} on attempt ${attempt + 1}:`, error);
       if (attempt === retries) {
