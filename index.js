@@ -10,18 +10,20 @@ const places = require('./places');
 const allRemainingPages = require('./allRemainingPages');
 const place = require('./place');
 const activity = require('./activity');
+const allNotDonepages = require('./allNotDonepages');
 
 const runAllScripts = async () => {
   try {
     await Promise.all([
-      runner('activities', activities),
-      runner('experience', experience),
-      runner('guide', guide),
-      runner('placesToVisit', placesToVisit),
-      runner('places', places),
-      runner('place', place),
-      runner('activity', activity),
-      runner('allRemainingPages', allRemainingPages),
+      // runner('activities', activities),
+      // runner('experience', experience),
+      // runner('guide', guide),
+      // runner('placesToVisit', placesToVisit),
+      // runner('places', places),
+      // runner('place', place),
+      // runner('activity', activity),
+      // runner('allRemainingPages', allRemainingPages),
+      runner('allNotDonepages', allNotDonepages),
     ]);
 
     console.log('All scripts completed successfully.');
