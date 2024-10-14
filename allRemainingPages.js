@@ -20,6 +20,9 @@ const sitemapUrls = [
   "https://www.avathi.com/best-time-to-visit/sitemap.xml",
   "https://www.avathi.com/how-to-get-there/sitemap.xml",
   "https://www.avathi.com/things-to-do/sitemap.xml",
+  "https://www.avathi.com/place/sitemap.xml",
+  "https://www.avathi.com/activity/sitemap.xml",
+  "https://www.avathi.com/places-to-visit/sitemap.xml"
 ];
 
 async function fetchSitemapUrls(sitemapUrl) {
@@ -50,7 +53,8 @@ async function saveCompleteWebPage(browser, url, filePath, retries = 3) {
     await page.setDefaultNavigationTimeout(60000); 
     try {
       await page.goto(url, { waitUntil: 'networkidle0' });
-      await page.waitForTimeout(5000); 
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
       const htmlContent = await page.content();
       fs.writeFileSync(filePath, htmlContent);
       console.log(`The file was saved as ${filePath}!`);

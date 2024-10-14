@@ -78,7 +78,8 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 3) 
       const readMoreExists = await page.$(readMoreButton);
       if (readMoreExists) {
         await page.click(readMoreButton);
-        await page.waitForTimeout(5000); // Wait for the expanded content to load
+        await new Promise(resolve => setTimeout(resolve, 5000));
+// Wait for the expanded content to load
       }
 
       const htmlContent = await page.content();

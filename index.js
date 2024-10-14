@@ -2,28 +2,25 @@ require('dotenv').config();
 
 const runner = require('./runner');
 
-const activities = require('./activities');
 const experience = require('./experience');
 const guide = require('./guide');
 const placesToVisit = require('./places-to-visit');
-const places = require('./places');
 const allRemainingPages = require('./allRemainingPages');
-const place = require('./place');
-const activity = require('./activity');
+const activities = require('./activities');
+const places = require('./places');
+
 const allNotDonepages = require('./allNotDonepages');
 
 const runAllScripts = async () => {
   try {
     await Promise.all([
-      // runner('activities', activities),
       // runner('experience', experience),
       // runner('guide', guide),
-      // runner('placesToVisit', placesToVisit),
-      // runner('places', places),
-      // runner('place', place),
-      // runner('activity', activity),
+
       // runner('allRemainingPages', allRemainingPages),
-      runner('allNotDonepages', allNotDonepages),
+      runner('activities', activities),
+      // runner('places', places),
+      // runner('allNotDonepages', allNotDonepages),
     ]);
 
     console.log('All scripts completed successfully.');

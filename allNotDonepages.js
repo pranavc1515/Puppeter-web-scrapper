@@ -51,7 +51,8 @@ async function saveCompleteWebPage(browser, url, filePath, retries = 3) {
     await page.setDefaultNavigationTimeout(60000); 
     try {
       await page.goto(url, { waitUntil: 'networkidle0' });
-      await page.waitForTimeout(5000); 
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
       const htmlContent = await page.content();
       fs.writeFileSync(filePath, htmlContent);
       console.log(`The file was saved as ${filePath}!`);

@@ -72,7 +72,8 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) 
       await page.evaluate(() => {
         document.querySelector('.overview .read-more').click();
       });
-      await page.waitForTimeout(5000);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
       const htmlContent = await page.content();
       fs.writeFileSync(filePath, htmlContent);
       console.log(`The file was saved as ${filePath}!`);

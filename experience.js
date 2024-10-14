@@ -75,7 +75,8 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) 
           await page.evaluate((sel) => {
             document.querySelectorAll(sel).forEach(button => button.click());
           }, selector);
-          await page.waitForTimeout(5000);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+
         }
       }
       const htmlContent = await page.content();

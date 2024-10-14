@@ -66,7 +66,8 @@ async function saveCompleteWebPage(url, browser, baseDir = 'scrapped-data', retr
       const readMoreExists = await page.$(readMoreButton);
       if (readMoreExists) {
         await page.click(readMoreButton);
-        await page.waitForTimeout(5000);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
       }
       const htmlContent = await page.content();
       fs.writeFileSync(filePath, htmlContent);

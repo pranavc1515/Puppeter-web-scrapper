@@ -6,7 +6,6 @@ const xml2js = require('xml2js');
 const AWS = require('aws-sdk');
 require('dotenv').config();
 
-// Configure AWS S3
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -41,13 +40,15 @@ async function saveToS3(bucketName, key, content) {
   }
 }
 
-async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) {
+async function saveCompleteWebPage(url, baseDir = 'scrapped-data') {
   const urlPath = new URL(url).pathname;
   const filePath = path.join(__dirname, baseDir, urlPath, 'index.html');
+
   if (fs.existsSync(filePath)) {
     console.log(`File already exists: ${filePath}`);
     return;
   }
+
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
   const browser = await puppeteer.launch({
@@ -55,43 +56,41 @@ async function saveCompleteWebPage(url, baseDir = 'scrapped-data', retries = 2) 
     timeout: 0
   });
 
-  let attempt = 0;
-  while (attempt <= retries) {
-    try {
-      const page = await browser.newPage();
-      await page.setRequestInterception(true);
-      page.on('request', request => {
-        if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
-          request.abort();
-        } else {
-          request.continue();
-        }
-      });
-      await page.goto(url, { waitUntil: 'networkidle0', timeout: 0 });
-      const readMoreSelectors = '[style*="text-decoration: underline rgb(255, 208, 66);"]';
-      await page.evaluate(selector => {
-        document.querySelectorAll(selector).forEach(button => button.click());
-      }, readMoreSelectors);
-      await page.waitForTimeout(5000);
-      const htmlContent = await page.content();
-      fs.writeFileSync(filePath, htmlContent);
-      console.log(`The file was saved as ${filePath}!`);
+  try {
+    const page = await browser.newPage();
 
-      // Upload to S3
-      const s3Key = path.join(baseDir, urlPath, 'index.html').replace(/\\/g, '/'); // Convert Windows backslashes to forward slashes for S3
-      await saveToS3(process.env.S3_BUCKET_NAME, s3Key, htmlContent);
-
-      break; // Success, break out of loop
-    } catch (error) {
-      console.error(`Error occurred while scraping ${url} on attempt ${attempt + 1}:`, error);
-      if (attempt === retries) {
-        console.error(`Failed to scrape ${url} after ${retries + 1} attempts.`);
+    await page.setRequestInterception(true);
+    page.on('request', request => {
+      if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
+        request.abort();
+      } else {
+        request.continue();
       }
-    }
-    attempt++;
-  }
+    });
 
-  await browser.close();
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 0 });
+
+    const readMoreSelectors = '[style*="text-decoration: underline rgb(255, 208, 66);"]'; // Targets all underlined 'Read More' links
+
+    await page.evaluate(selector => {
+      document.querySelectorAll(selector).forEach(button => button.click());
+    }, readMoreSelectors);
+
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+
+    const htmlContent = await page.content();
+    fs.writeFileSync(filePath, htmlContent);
+    console.log(`The file was saved as ${filePath}!`);
+
+    const s3Key = path.relative(__dirname, filePath).replace(/\\/g, '/'); 
+    await saveToS3(process.env.S3_BUCKET_NAME, s3Key, htmlContent);
+
+  } catch (error) {
+    console.error('Error occurred while scraping:', error);
+  } finally {
+    await browser.close();
+  }
 }
 
 async function scrapeFromSitemap(sitemapUrl) {
@@ -102,5 +101,5 @@ async function scrapeFromSitemap(sitemapUrl) {
 }
 
 module.exports = async () => {
-  await scrapeFromSitemap('https://www.avathi.com/activities/sitemap.xml');
+  await scrapeFromSitemap("https://www.avathi.com/activities/sitemap.xml");
 };
